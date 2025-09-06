@@ -1,3 +1,5 @@
+# FEEL FREE TO DM ME ON DISCORD (lombre_blanche.br) FOR ANY FEEDBACK, SINCE I'M NOT VERY FAMILIAR WITH SKINS, ETC.
+
 # Krunker Bulk Quick Sell Script
 
 Ever got tired of clicking through dozens of items one by one when selling blue and purple in Krunker? Yeah, me too. That's why I made this script.
