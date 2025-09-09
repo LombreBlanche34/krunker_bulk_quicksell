@@ -1,16 +1,14 @@
-// Script pour ajouter des checkboxes et fonction de quick sell multiple
 (function() {
-    // Ajouter les checkboxes à chaque carte d'item
+    // Add checkboxes to each item card
     function addCheckboxesToItems() {
         const marketCards = document.querySelectorAll('.marketCard');
         
         marketCards.forEach(card => {
-            // Vérifier si la checkbox n'existe pas déjà
             if (!card.querySelector('.item-checkbox')) {
                 const cardActions = card.querySelector('.cardActions');
                 
                 if (cardActions) {
-                    // Créer un conteneur pour la checkbox - PLUS GRAND
+                    // Create checkbox container
                     const checkboxContainer = document.createElement('div');
                     checkboxContainer.className = 'checkbox-container';
                     checkboxContainer.style.cssText = `
@@ -30,7 +28,7 @@
                         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
                     `;
                     
-                    // Effets hover pour le conteneur
+                    // Hover effects for container
                     checkboxContainer.onmouseover = () => {
                         checkboxContainer.style.background = 'linear-gradient(135deg, rgba(33, 150, 243, 0.25), rgba(25, 118, 210, 0.25))';
                         checkboxContainer.style.borderColor = '#2196F3';
@@ -41,11 +39,9 @@
                     checkboxContainer.onmouseout = () => {
                         const checkbox = checkboxContainer.querySelector('.item-checkbox');
                         if (checkbox && checkbox.checked) {
-                            // État sélectionné
                             checkboxContainer.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.25), rgba(56, 142, 60, 0.25))';
                             checkboxContainer.style.borderColor = '#4CAF50';
                         } else {
-                            // État normal
                             checkboxContainer.style.background = 'linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(25, 118, 210, 0.15))';
                             checkboxContainer.style.borderColor = 'rgba(33, 150, 243, 0.4)';
                         }
@@ -53,7 +49,7 @@
                         checkboxContainer.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
                     };
                     
-                    // Créer la checkbox - CACHÉE mais fonctionnelle
+                    // Create functional checkbox
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.className = 'item-checkbox';
@@ -68,7 +64,7 @@
                         pointer-events: auto;
                     `;
                     
-                    // Créer le label - PLUS VISIBLE
+                    // Create label
                     const label = document.createElement('span');
                     label.className = 'select-label';
                     label.textContent = 'SELECT';
@@ -87,17 +83,15 @@
                         transition: color 0.2s ease;
                     `;
                     
-                    // Fonction pour mettre à jour l'apparence selon l'état
+                    // Update appearance based on state
                     const updateAppearance = () => {
                         if (checkbox.checked) {
-                            // État sélectionné - VERT
                             checkboxContainer.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.25), rgba(56, 142, 60, 0.25))';
                             checkboxContainer.style.borderColor = '#4CAF50';
                             label.textContent = 'SELECTED';
                             label.style.color = '#4CAF50';
                             checkbox.style.accentColor = '#4CAF50';
                         } else {
-                            // État normal - BLEU
                             checkboxContainer.style.background = 'linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(25, 118, 210, 0.15))';
                             checkboxContainer.style.borderColor = 'rgba(33, 150, 243, 0.4)';
                             label.textContent = 'SELECT';
@@ -106,7 +100,7 @@
                         }
                     };
                     
-                    // Event pour tout le conteneur - ZONE DE CLIC ÉLARGIE
+                    // Event for entire container - expanded click area
                     checkboxContainer.onclick = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -114,14 +108,14 @@
                         updateAppearance();
                         updateSelectedCount();
                         
-                        // Effet visuel de clic immédiat
+                        // Immediate visual click effect
                         checkboxContainer.style.transform = 'scale(0.95)';
                         requestAnimationFrame(() => {
                             checkboxContainer.style.transform = 'scale(1)';
                         });
                     };
                     
-                    // Events pour la checkbox
+                    // Events for checkbox
                     checkbox.onclick = (e) => {
                         e.stopPropagation();
                     };
@@ -131,329 +125,302 @@
                         updateSelectedCount();
                     };
                     
-                    // Event pour le label
+                    // Event for label
                     label.onclick = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
                     };
                     
-                    // Assemblage initial
+                    // Initial assembly
                     checkboxContainer.appendChild(checkbox);
                     checkboxContainer.appendChild(label);
                     
-                    // Apparence initiale
                     updateAppearance();
                     
-                    // S'assurer que cardActions ne bloque pas les clics
                     cardActions.style.position = 'relative';
                     cardActions.style.zIndex = '999';
                     
-                    // Insérer le conteneur avant cardActions
                     cardActions.parentNode.insertBefore(checkboxContainer, cardActions);
                 }
             }
         });
     }
 
-    // Fonction pour sélectionner "All" dans le dropdown
-    function selectAllOption() {
-        return new Promise((resolve) => {
-            waitForElement('#quickSellSelect', 2000)
-                .then(selectElement => {
-                    console.log('QuickSell select found, setting to "All" (value 2)');
-                    selectElement.value = '2'; // Sélectionner "All"
-                    
-                    // Déclencher l'event change au cas où
-                    selectElement.dispatchEvent(new Event('change', { bubbles: true }));
-                    
-                    console.log('QuickSell select set to:', selectElement.value);
-                    resolve(true);
-                })
-                .catch(error => {
-                    console.error('Could not find quickSellSelect:', error);
-                    resolve(false);
-                });
-        });
+    // Extract item ID from a card
+    function getItemIdFromCard(card) {
+        const quickSellButton = card.querySelector('[onclick*="quickSell"]');
+        if (quickSellButton) {
+            const onclick = quickSellButton.getAttribute('onclick');
+            const match = onclick.match(/quickSell\((\d+),/);
+            return match ? parseInt(match[1]) : null;
+        }
+        return null;
     }
 
-    // Fonction pour quick sell multiple MODIFIÉE sans délais
-    function quickSellSelected() {
+    // Main function to sell all selected items
+    function sellSelectedItems() {
         const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
-        const selectedItems = [];
         
-        selectedCheckboxes.forEach(checkbox => {
-            const card = checkbox.closest('.marketCard');
-            const quickSellData = getQuickSellData(card);
-            if (quickSellData) {
-                selectedItems.push(quickSellData);
-            }
-        });
-
-        if (selectedItems.length === 0) {
-            alert('No items selected!');
+        if (selectedCheckboxes.length === 0) {
+            alert('No items selected! Please select items first.');
             return;
         }
 
-        const itemsList = selectedItems.map(item => 
-            `${item.name}${item.actualQuantity > 1 ? ` (x${item.actualQuantity} - ALL will be sold)` : ''}`
-        ).join('\n');
+        const itemIds = [];
+        selectedCheckboxes.forEach(checkbox => {
+            const card = checkbox.closest('.marketCard');
+            const itemId = getItemIdFromCard(card);
+            if (itemId) {
+                itemIds.push(itemId);
+            }
+        });
+
+        if (itemIds.length === 0) {
+            alert('Could not retrieve item IDs! Please try again.');
+            return;
+        }
+
+        const confirmMessage = `Are you sure you want to sell ${itemIds.length} item(s)?\n\nThis action cannot be undone!`;
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        console.log(`Starting to sell ${itemIds.length} items...`);
         
-        if (confirm(`Sell ${selectedItems.length} item(s) with auto "All" selection?\n\nThe script will automatically select "All" for each item.\n\nThis action cannot be undone!`)) {
-            console.log(`Starting quick sell of ${selectedItems.length} items with auto-select "All"...`);
-            
-            let currentIndex = 0;
-            
-            function processNextItem() {
-                if (currentIndex >= selectedItems.length) {
-                    // Tous les items ont été traités - nettoyage immédiat
-                    document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
-                        cb.checked = false;
-                        // Mettre à jour l'apparence des boutons
-                        const container = cb.closest('.checkbox-container');
+        let currentIndex = 0;
+
+        function sellNextItem() {
+            if (currentIndex >= itemIds.length) {
+                console.log('All items sold successfully!');
+                alert("All items sold! You probably need to reload the page to see updated inventory.");
+                
+                // Uncheck all checkboxes
+                document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
+                    cb.checked = false;
+                    const container = cb.closest('.checkbox-container');
+                    if (container) {
                         const label = container.querySelector('.select-label');
-                        if (container && label) {
-                            container.style.background = 'linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(25, 118, 210, 0.15))';
-                            container.style.borderColor = 'rgba(33, 150, 243, 0.4)';
-                            label.textContent = 'SELECT';
-                            label.style.color = '#2196F3';
-                        }
-                    });
-                    updateSelectedCount();
-                    console.log('Quick sell completed, checkboxes unchecked');
-                    return;
-                }
-                
-                const item = selectedItems[currentIndex];
-                console.log(`Processing item ${currentIndex + 1}/${selectedItems.length}: ${item.name} (ID: ${item.itemId})`);
-                
-                // Déclencher quickSell immédiatement
-                if (typeof quickSell === 'function') {
-                    quickSell(parseInt(item.itemId), parseInt(item.quantity), parseInt(item.index));
-                    console.log(`quickSell called: quickSell(${item.itemId}, ${item.quantity}, ${item.index})`);
-                    
-                    // Traitement immédiat du popup
-                    selectAllOption().then(success => {
-                        if (success) {
-                            console.log(`Auto-selected "All" for item: ${item.name}`);
-                            
-                            // Cliquer immédiatement sur le bouton de confirmation
-                            const confirmButton = document.querySelector('#genericPop button, #genericPop .button, #genericPop [onclick*="sellConfirmed"], #genericPop [onclick*="confirm"]');
+                        container.style.background = 'linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(25, 118, 210, 0.15))';
+                        container.style.borderColor = 'rgba(33, 150, 243, 0.4)';
+                        label.textContent = 'SELECT';
+                        label.style.color = '#2196F3';
+                    }
+                });
+                updateSelectedCount();
+                return;
+            }
+
+            const itemId = itemIds[currentIndex];
+            console.log(`Selling item ${currentIndex + 1}/${itemIds.length} (ID: ${itemId})`);
+
+            // Execute quickSell
+            quickSell(itemId, 1, 84);
+
+            // Wait for popup and select "All"
+            setTimeout(() => {
+                const selectElement = document.querySelector("#quickSellSelect");
+                if (selectElement) {
+                    const allOption = document.querySelector("#quickSellSelect > option:nth-child(3)");
+                    if (allOption) {
+                        selectElement.value = allOption.value;
+                        console.log(`Selected "All" option for item ${itemId}`);
+                        
+                        // Click confirmation button
+                        setTimeout(() => {
+                            const confirmButton = document.querySelector("#quickSellBtn");
                             if (confirmButton) {
                                 confirmButton.click();
-                                console.log(`Confirm button clicked for: ${item.name}`);
+                                console.log(`Confirmed sale for item ${itemId}`);
+                                
+                                // Execute showPopup() after sale
+                                setTimeout(() => {
+                                    if (typeof showPopup === 'function') {
+                                        showPopup();
+                                        console.log(`Refreshed UI after selling item ${itemId}`);
+                                    } else {
+                                        console.warn('showPopup function not found');
+                                    }
+                                    
+                                    // Move to next item
+                                    currentIndex++;
+                                    setTimeout(sellNextItem, 100);
+                                }, 100);
                             } else {
-                                console.log('No confirm button found, popup might auto-close');
+                                console.error(`Confirmation button not found for item ${itemId}`);
+                                currentIndex++;
+                                setTimeout(sellNextItem, 100);
                             }
-                        } else {
-                            console.log(`Failed to auto-select "All" for item: ${item.name}, continuing anyway...`);
-                        }
-                        
-                        // Passer immédiatement au prochain item
+                        }, 100);
+                    } else {
+                        console.error(`"All" option not found for item ${itemId}`);
                         currentIndex++;
-                        processNextItem();
-                    });
+                        setTimeout(sellNextItem, 100);
+                    }
                 } else {
-                    console.error('quickSell function not found');
+                    console.error(`quickSellSelect not found for item ${itemId}`);
                     currentIndex++;
-                    processNextItem();
+                    setTimeout(sellNextItem, 100);
                 }
-            }
+            }, 100);
+        }
+
+        // Start selling
+        sellNextItem();
+    }
+
+    // Make element draggable
+    function makeDraggable(element) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        let isDragging = false;
+        
+        // Create drag handle (title bar)
+        const dragHandle = element.querySelector('h3');
+        dragHandle.style.cursor = 'move';
+        dragHandle.style.userSelect = 'none';
+        
+        dragHandle.onmousedown = dragMouseDown;
+        
+        function dragMouseDown(e) {
+            e = e || window.event;
+            e.preventDefault();
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+            isDragging = true;
             
-            // Commencer le traitement immédiatement
-            processNextItem();
+            // Add dragging visual feedback
+            element.style.opacity = '0.8';
+            element.style.transform = 'scale(1.02)';
+            element.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.7)';
+        }
+        
+        function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            
+            // Calculate new position
+            let newTop = element.offsetTop - pos2;
+            let newLeft = element.offsetLeft - pos1;
+            
+            // Keep panel within viewport bounds
+            const rect = element.getBoundingClientRect();
+            const maxTop = window.innerHeight - rect.height;
+            const maxLeft = window.innerWidth - rect.width;
+            
+            newTop = Math.max(0, Math.min(newTop, maxTop));
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            
+            element.style.top = newTop + "px";
+            element.style.left = newLeft + "px";
+            element.style.right = 'auto';
+        }
+        
+        function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+            isDragging = false;
+            
+            // Remove dragging visual feedback
+            element.style.opacity = '1';
+            element.style.transform = 'scale(1)';
+            element.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5)';
+            
+            // Save position to localStorage
+            localStorage.setItem('quickSellPanelLeft', element.style.left);
+            localStorage.setItem('quickSellPanelTop', element.style.top);
         }
     }
 
-    // Créer les boutons de contrôle
-    function createControlButtons() {
-        // Vérifier si les boutons existent déjà
-        if (document.querySelector('#quickSellMultipleBtn')) return;
+    // Create control panel
+    function createControlPanel() {
+        if (document.querySelector('#quickSellPanel')) return;
 
-        const controlPanel = document.createElement('div');
-        controlPanel.id = 'multiSellControls';
-        controlPanel.style.cssText = `
+        const panel = document.createElement('div');
+        panel.id = 'quickSellPanel';
+        
+        // Get saved position from localStorage or use default
+        const savedLeft = localStorage.getItem('quickSellPanelLeft');
+        const savedTop = localStorage.getItem('quickSellPanelTop');
+        
+        panel.style.cssText = `
             position: fixed;
-            top: 50px;
-            left: 60px;
-            background: linear-gradient(135deg, rgba(30, 34, 42, 0.98), rgba(25, 29, 35, 0.98));
-            padding: 0;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(33, 150, 243, 0.5);
+            top: ${savedTop || '20px'};
+            ${savedLeft ? `left: ${savedLeft};` : 'right: 20px;'}
+            background: linear-gradient(135deg, rgba(30, 34, 42, 0.95), rgba(25, 29, 35, 0.95));
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             z-index: 10000;
             width: 280px;
-            backdrop-filter: blur(15px);
-            font-family: 'Roboto', sans-serif;
-            overflow: hidden;
-            transition: none;
-            max-height: 400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         `;
 
-        // Header du panneau
-        const header = document.createElement('div');
-        header.style.cssText = `
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            padding: 12px 16px;
-            color: white;
-            font-weight: 600;
-            font-size: 13px;
+        const title = document.createElement('h3');
+        title.textContent = 'Quick Sell Panel ↔️';
+        title.style.cssText = `
+            color: #2196F3;
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            text-align: center;
             text-transform: uppercase;
             letter-spacing: 1px;
-            position: relative;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             cursor: move;
+            user-select: none;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background 0.2s ease;
         `;
-        header.textContent = 'QUICK SELL MULTIPLE';
+        
+        // Add hover effect to title to indicate it's draggable
+        title.onmouseover = () => {
+            title.style.background = 'rgba(33, 150, 243, 0.1)';
+        };
+        title.onmouseout = () => {
+            title.style.background = 'transparent';
+        };
 
-        // Rendre le panneau draggable - Version temps réel
-        let isDragging = false;
-        let initialX;
-        let initialY;
+        const selectedCountDiv = document.createElement('div');
+        selectedCountDiv.id = 'selectedCount';
+        selectedCountDiv.textContent = 'Selected items: 0';
+        selectedCountDiv.style.cssText = `
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 600;
+        `;
 
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            initialX = e.clientX - controlPanel.getBoundingClientRect().left;
-            initialY = e.clientY - controlPanel.getBoundingClientRect().top;
-            document.body.style.userSelect = 'none';
-            header.style.cursor = 'grabbing';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                e.preventDefault();
-                const x = e.clientX - initialX;
-                const y = e.clientY - initialY;
-                
-                controlPanel.style.left = x + 'px';
-                controlPanel.style.top = y + 'px';
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                document.body.style.userSelect = '';
-                header.style.cursor = 'move';
-            }
-        });
-
-        // Bouton fermer dans le header
-        const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = '&times;';
-        closeBtn.style.cssText = `
-            position: absolute;
-            top: 50%;
-            right: 12px;
-            transform: translateY(-50%);
-            width: 24px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.1);
+        const sellButton = document.createElement('button');
+        sellButton.textContent = 'SELL ALL SELECTED ITEMS';
+        sellButton.style.cssText = `
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #f44336, #d32f2f);
             color: white;
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            line-height: 1;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        `;
-        closeBtn.onmouseover = () => {
-            closeBtn.style.background = 'rgba(244, 67, 54, 0.8)';
-            closeBtn.style.transform = 'translateY(-50%) scale(1.1)';
-        };
-        closeBtn.onmouseout = () => {
-            closeBtn.style.background = 'rgba(255, 255, 255, 0.1)';
-            closeBtn.style.transform = 'translateY(-50%) scale(1)';
-        };
-        closeBtn.onclick = () => {
-            controlPanel.remove();
-            console.log('Control panel closed');
-        };
-
-        header.appendChild(closeBtn);
-
-        // Body du panneau
-        const body = document.createElement('div');
-        body.style.cssText = `
-            padding: 16px;
-        `;
-
-        // Info section
-        const infoSection = document.createElement('div');
-        infoSection.style.cssText = `
-            background: rgba(76, 175, 80, 0.1);
-            border: 1px solid rgba(76, 175, 80, 0.3);
             border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 16px;
-        `;
-
-        const infoTitle = document.createElement('div');
-        infoTitle.textContent = 'AUTO-SELECT ALL MODE';
-        infoTitle.style.cssText = `
-            color: #4CAF50;
-            font-size: 11px;
+            cursor: pointer;
             font-weight: 600;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
         `;
+        sellButton.onmouseover = () => sellButton.style.background = 'linear-gradient(135deg, #d32f2f, #c62828)';
+        sellButton.onmouseout = () => sellButton.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
+        sellButton.onclick = sellSelectedItems;
 
-        const infoText = document.createElement('div');
-        infoText.textContent = 'Automatically selects "All" option in quick sell popup for each item';
-        infoText.style.cssText = `
-            color: rgba(76, 175, 80, 0.9);
-            font-size: 10px;
-            line-height: 1.4;
-        `;
-
-        infoSection.appendChild(infoTitle);
-        infoSection.appendChild(infoText);
-
-        // Stats section
-        const statsSection = document.createElement('div');
-        statsSection.style.cssText = `
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        `;
-
-        const selectedCount = document.createElement('div');
-        selectedCount.style.cssText = `
-            text-align: center;
-            flex: 1;
-        `;
-        selectedCount.innerHTML = `
-            <div style="color: #2196F3; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">SELECTED</div>
-            <div id="selectedCountNumber" style="color: #4CAF50; font-size: 18px; font-weight: 700;">0</div>
-        `;
-
-        const totalItems = document.createElement('div');
-        totalItems.style.cssText = `
-            text-align: center;
-            flex: 1;
-        `;
-        totalItems.innerHTML = `
-            <div style="color: #2196F3; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">TOTAL</div>
-            <div style="color: #757575; font-size: 18px; font-weight: 700;">${document.querySelectorAll('.marketCard').length}</div>
-        `;
-
-        statsSection.appendChild(selectedCount);
-        statsSection.appendChild(totalItems);
-
-        // Buttons section
-        const buttonsSection = document.createElement('div');
-        buttonsSection.style.cssText = `
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        `;
-
-        // Select All Button
-        const selectAllBtn = document.createElement('button');
-        selectAllBtn.textContent = 'SELECT ALL ITEMS';
-        selectAllBtn.style.cssText = `
+        const selectAllButton = document.createElement('button');
+        selectAllButton.textContent = 'SELECT ALL';
+        selectAllButton.style.cssText = `
             width: 100%;
             padding: 10px;
             background: linear-gradient(135deg, #2196F3, #1976D2);
@@ -466,19 +433,19 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
         `;
-        selectAllBtn.onclick = () => {
+        selectAllButton.onmouseover = () => selectAllButton.style.background = 'linear-gradient(135deg, #1976D2, #1565C0)';
+        selectAllButton.onmouseout = () => selectAllButton.style.background = 'linear-gradient(135deg, #2196F3, #1976D2)';
+        selectAllButton.onclick = () => {
             const checkboxes = document.querySelectorAll('.item-checkbox');
             const allChecked = Array.from(checkboxes).every(cb => cb.checked);
             
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = !allChecked;
-                // Mettre à jour l'apparence immédiatement
-                const container = checkbox.closest('.checkbox-container');
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+                const container = cb.closest('.checkbox-container');
                 const label = container.querySelector('.select-label');
                 if (container && label) {
-                    if (checkbox.checked) {
+                    if (cb.checked) {
                         container.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.25), rgba(56, 142, 60, 0.25))';
                         container.style.borderColor = '#4CAF50';
                         label.textContent = 'SELECTED';
@@ -491,182 +458,43 @@
                     }
                 }
             });
-            
-            selectAllBtn.textContent = allChecked ? 'SELECT ALL ITEMS' : 'DESELECT ALL ITEMS';
             updateSelectedCount();
+            
+            selectAllButton.textContent = allChecked ? 'SELECT ALL' : 'DESELECT ALL';
         };
 
-        // Quick Sell Button
-        const quickSellBtn = document.createElement('button');
-        quickSellBtn.id = 'quickSellMultipleBtn';
-        quickSellBtn.textContent = 'EXECUTE QUICK SELL';
-        quickSellBtn.style.cssText = `
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
-        `;
-        quickSellBtn.onclick = quickSellSelected;
+        panel.appendChild(title);
+        panel.appendChild(selectedCountDiv);
+        panel.appendChild(sellButton);
+        panel.appendChild(selectAllButton);
 
-        // Assembler le panneau
-        buttonsSection.appendChild(selectAllBtn);
-        buttonsSection.appendChild(quickSellBtn);
-
-        body.appendChild(infoSection);
-        body.appendChild(statsSection);
-        body.appendChild(buttonsSection);
-
-        controlPanel.appendChild(header);
-        controlPanel.appendChild(body);
+        document.body.appendChild(panel);
         
-        document.body.appendChild(controlPanel);
+        // Make the panel draggable
+        makeDraggable(panel);
     }
 
-    // Fonction pour compter les items sélectionnés
+    // Update selected items counter
     function updateSelectedCount() {
-        const selectedCount = document.querySelectorAll('.item-checkbox:checked').length;
-        const selectedCountNumber = document.getElementById('selectedCountNumber');
-        const quickSellBtn = document.getElementById('quickSellMultipleBtn');
-        
-        if (selectedCountNumber) {
-            selectedCountNumber.textContent = selectedCount;
-        }
-        
-        if (quickSellBtn) {
-            quickSellBtn.textContent = selectedCount > 0 ? 
-                `EXECUTE QUICK SELL (${selectedCount})` : 
-                'EXECUTE QUICK SELL';
-            
-            // Changer la couleur du bouton selon l'état
-            if (selectedCount > 0) {
-                quickSellBtn.style.background = 'linear-gradient(135deg, #4CAF50, #388E3C)';
-                quickSellBtn.onmouseover = () => {
-                    quickSellBtn.style.background = 'linear-gradient(135deg, #388E3C, #2E7D32)';
-                };
-                quickSellBtn.onmouseout = () => {
-                    quickSellBtn.style.background = 'linear-gradient(135deg, #4CAF50, #388E3C)';
-                };
-            } else {
-                quickSellBtn.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
-                quickSellBtn.onmouseover = () => {
-                    quickSellBtn.style.background = 'linear-gradient(135deg, #d32f2f, #c62828)';
-                };
-                quickSellBtn.onmouseout = () => {
-                    quickSellBtn.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
-                };
-            }
+        const count = document.querySelectorAll('.item-checkbox:checked').length;
+        const countDiv = document.querySelector('#selectedCount');
+        if (countDiv) {
+            countDiv.textContent = `Selected items: ${count}`;
         }
     }
 
-    // Fonction helper pour waitForElement
-    function waitForElement(selector, timeout) {
-        return new Promise((resolve, reject) => {
-            const element = document.querySelector(selector);
-            if (element) {
-                resolve(element);
-                return;
-            }
-
-            const observer = new MutationObserver(() => {
-                const element = document.querySelector(selector);
-                if (element) {
-                    observer.disconnect();
-                    resolve(element);
-                }
-            });
-
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-
-            setTimeout(() => {
-                observer.disconnect();
-                reject(new Error(`Element ${selector} not found within ${timeout}ms`));
-            }, timeout);
-        });
-    }
-
-    // Fonction pour observer les popups de quick sell
-    function observeQuickSellPopup() {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === Node.ELEMENT_NODE) {
-                        const popup = node.querySelector('#genericPop') || (node.id === 'genericPop' ? node : null);
-                        if (popup) {
-                            console.log('Quick sell popup detected');
-                        }
-                    }
-                });
-            });
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        console.log('Quick sell popup observer started');
-    }
-
-    // Fonction pour extraire les données de quick sell
-    function getQuickSellData(card) {
-        try {
-            const quickSellButton = card.querySelector('[onclick*="quickSell"]');
-            if (!quickSellButton) return null;
-
-            const onclick = quickSellButton.getAttribute('onclick');
-            const matches = onclick.match(/quickSell\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
-            
-            if (matches) {
-                const itemName = card.querySelector('.itemName')?.textContent?.trim() || 'Unknown Item';
-                const quantity = card.querySelector('.itemOwn')?.textContent?.match(/\d+/)?.[0] || '1';
-                
-                return {
-                    itemId: matches[1],
-                    quantity: matches[2],
-                    index: matches[3],
-                    name: itemName,
-                    actualQuantity: parseInt(quantity)
-                };
-            }
-        } catch (error) {
-            console.error('Error extracting quick sell data:', error);
-        }
-        return null;
-    }
-
-    // Initialiser le script
-    function init() {
+    // Initialize
+    addCheckboxesToItems();
+    createControlPanel();
+    
+    // Observer to add checkboxes to new elements
+    const observer = new MutationObserver(() => {
         addCheckboxesToItems();
-        createControlButtons();
-        observeQuickSellPopup();
-        
-        // Observer pour ajouter des checkboxes aux nouveaux éléments
-        const observer = new MutationObserver(() => {
-            addCheckboxesToItems();
-        });
-        
-        const marketList = document.getElementById('marketList');
-        if (marketList) {
-            observer.observe(marketList, { childList: true, subtree: true });
-        }
-        
-        console.log('Krunker Quick Sell Multiple activated!');
-        console.log('Auto-select "All" option enabled for multiple items');
-        console.log('Popup observer active');
+    });
+    
+    const marketList = document.getElementById('marketList');
+    if (marketList) {
+        observer.observe(marketList, { childList: true, subtree: true });
     }
-
-    // Lancer le script
-    init();
+    console.log('Select your items and click "SELL ALL SELECTED ITEMS" to begin.');
 })();
