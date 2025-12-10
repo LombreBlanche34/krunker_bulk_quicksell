@@ -243,14 +243,14 @@
                                     
                                     // Move to next item
                                     currentIndex++;
-                                    setTimeout(sellNextItem, 100);
-                                }, 100);
+                                    setTimeout(sellNextItem, 200);
+                                }, 200);
                             } else {
                                 console.error(`Confirmation button not found for item ${itemId}`);
                                 currentIndex++;
                                 setTimeout(sellNextItem, 100);
                             }
-                        }, 100);
+                        }, 200);
                     } else {
                         console.error(`"All" option not found for item ${itemId}`);
                         currentIndex++;
@@ -259,9 +259,9 @@
                 } else {
                     console.error(`quickSellSelect not found for item ${itemId}`);
                     currentIndex++;
-                    setTimeout(sellNextItem, 100);
+                    setTimeout(sellNextItem, 200);
                 }
-            }, 100);
+            }, 200);
         }
 
         // Start selling
